@@ -88,6 +88,110 @@ import shutil
 
 
 import tempfile
+'''
+tempfile.TemporaryFile([mode='w+b'[, bufsize=-1[, suffix=''[, prefix='tmp'[, dir=None]]]]])
+Return a file-like object that can be used as a temporary storage area. The file is created using mkstemp(). It will be destroyed as soon as it is closed (including an implicit close when the object is garbage collected). Under Unix, the directory entry for the file is removed immediately after the file is created. Other platforms do not support this; your code should not rely on a temporary file created using this function having or not having a visible name in the file system.
+
+The mode parameter defaults to 'w+b' so that the file created can be read and written without being closed. Binary mode is used so that it behaves consistently on all platforms without regard for the data that is stored. bufsize defaults to -1, meaning that the operating system default is used.
+
+The dir, prefix and suffix parameters are passed to mkstemp().
+
+The returned object is a true file object on POSIX platforms. On other platforms, it is a file-like object whose file attribute is the underlying true file object. This file-like object can be used in a with statement, just like a normal file.
+
+tempfile.NamedTemporaryFile([mode='w+b'[, bufsize=-1[, suffix=''[, prefix='tmp'[, dir=None[, delete=True]]]]]])
+This function operates exactly as TemporaryFile() does, except that the file is guaranteed to have a visible name in the file system (on Unix, the directory entry is not unlinked). That name can be retrieved from the name attribute of the returned file-like object. Whether the name can be used to open the file a second time, while the named temporary file is still open, varies across platforms (it can be so used on Unix; it cannot on Windows NT or later). If delete is true (the default), the file is deleted as soon as it is closed.
+
+The returned object is always a file-like object whose file attribute is the underlying true file object. This file-like object can be used in a with statement, just like a normal file.
+
+New in version 2.3.
+
+New in version 2.6: The delete parameter.
+
+tempfile.SpooledTemporaryFile([max_size=0[, mode='w+b'[, bufsize=-1[, suffix=''[, prefix='tmp'[, dir=None]]]]]])
+This function operates exactly as TemporaryFile() does, except that data is spooled in memory until the file size exceeds max_size, or until the file’s fileno() method is called, at which point the contents are written to disk and operation proceeds as with TemporaryFile(). Also, it’s truncate method does not accept a size argument.
+
+The resulting file has one additional method, rollover(), which causes the file to roll over to an on-disk file regardless of its size.
+
+The returned object is a file-like object whose _file attribute is either a StringIO object or a true file object, depending on whether rollover() has been called. This file-like object can be used in a with statement, just like a normal file.
+
+New in version 2.6.
+
+tempfile.mkstemp([suffix=''[, prefix='tmp'[, dir=None[, text=False]]]])
+Creates a temporary file in the most secure manner possible. There are no race conditions in the file’s creation, assuming that the platform properly implements the os.O_EXCL flag for os.open(). The file is readable and writable only by the creating user ID. If the platform uses permission bits to indicate whether a file is executable, the file is executable by no one. The file descriptor is not inherited by child processes.
+
+Unlike TemporaryFile(), the user of mkstemp() is responsible for deleting the temporary file when done with it.
+
+If suffix is specified, the file name will end with that suffix, otherwise there will be no suffix. mkstemp() does not put a dot between the file name and the suffix; if you need one, put it at the beginning of suffix.
+
+If prefix is specified, the file name will begin with that prefix; otherwise, a default prefix is used.
+
+If dir is specified, the file will be created in that directory; otherwise, a default directory is used. The default directory is chosen from a platform-dependent list, but the user of the application can control the directory location by setting the TMPDIR, TEMP or TMP environment variables. There is thus no guarantee that the generated filename will have any nice properties, such as not requiring quoting when passed to external commands via os.popen().
+
+If text is specified, it indicates whether to open the file in binary mode (the default) or text mode. On some platforms, this makes no difference.
+
+mkstemp() returns a tuple containing an OS-level handle to an open file (as would be returned by os.open()) and the absolute pathname of that file, in that order.
+
+New in version 2.3.
+
+tempfile.mkdtemp([suffix=''[, prefix='tmp'[, dir=None]]])
+Creates a temporary directory in the most secure manner possible. There are no race conditions in the directory’s creation. The directory is readable, writable, and searchable only by the creating user ID.
+
+The user of mkdtemp() is responsible for deleting the temporary directory and its contents when done with it.
+
+The prefix, suffix, and dir arguments are the same as for mkstemp().
+
+mkdtemp() returns the absolute pathname of the new directory.
+
+New in version 2.3.
+
+tempfile.mktemp([suffix=''[, prefix='tmp'[, dir=None]]])
+Deprecated since version 2.3: Use mkstemp() instead.
+
+Return an absolute pathname of a file that did not exist at the time the call is made. The prefix, suffix, and dir arguments are the same as for mkstemp().
+
+Warning Use of this function may introduce a security hole in your program. By the time you get around to doing anything with the file name it returns, someone else may have beaten you to the punch. mktemp() usage can be replaced easily with NamedTemporaryFile(), passing it the delete=False parameter:
+>>> f = NamedTemporaryFile(delete=False)
+>>> f
+<open file '<fdopen>', mode 'w+b' at 0x384698>
+>>> f.name
+'/var/folders/5q/5qTPn6xq2RaWqk+1Ytw3-U+++TI/-Tmp-/tmpG7V1Y0'
+>>> f.write("Hello World!\n")
+>>> f.close()
+>>> os.unlink(f.name)
+>>> os.path.exists(f.name)
+False
+The module uses a global variable that tell it how to construct a temporary name. They are initialized at the first call to any of the functions above. The caller may change them, but this is discouraged; use the appropriate function arguments, instead.
+
+tempfile.tempdir
+When set to a value other than None, this variable defines the default value for the dir argument to all the functions defined in this module.
+
+If tempdir is unset or None at any call to any of the above functions, Python searches a standard list of directories and sets tempdir to the first one which the calling user can create files in. The list is:
+
+The directory named by the TMPDIR environment variable.
+The directory named by the TEMP environment variable.
+The directory named by the TMP environment variable.
+A platform-specific location:
+On RiscOS, the directory named by the Wimp$ScrapDir environment variable.
+On Windows, the directories C:\TEMP, C:\TMP, \TEMP, and \TMP, in that order.
+On all other platforms, the directories /tmp, /var/tmp, and /usr/tmp, in that order.
+As a last resort, the current working directory.
+tempfile.gettempdir()
+Return the directory currently selected to create temporary files in. If tempdir is not None, this simply returns its contents; otherwise, the search described above is performed, and the result returned.
+
+New in version 2.3.
+
+tempfile.template
+Deprecated since version 2.0: Use gettempprefix() instead.
+
+When set to a value other than None, this variable defines the prefix of the final component of the filenames returned by mktemp(). A string of six random letters and digits is appended to the prefix to make the filename unique. The default prefix is tmp.
+
+Older versions of this module used to require that template be set to None after a call to os.fork(); this has not been necessary since version 1.5.2.
+
+tempfile.gettempprefix()
+Return the filename prefix used to create temporary files. This does not contain the directory component. Using this function is preferred over reading the template variable directly.
+
+New in version 1.5.2.
+'''
 
 
 import posixpath
@@ -2188,17 +2292,18 @@ To stream a file using downfile, you can use the 'mkfifo' trick with omxplayer e
 	# NOT WORKING YET
 	def streaming(self, remotefile, localpipe, fmt = 'M3U8_480_360', chunk = 4 * const.OneM):
 		''' Usage: stream <remotefile> <localpipe> [format] [chunk] - \
-stream a video / audio file converted to M3U format at cloud side, to a pipe.
-  remotefile - remote file at Baidu Yun (after app root directory at Baidu Yun)
-  localpipe - the local pipe file to write to
-  format - output video format (M3U8_320_240 | M3U8_480_224 | \
-M3U8_480_360 | M3U8_640_480 | M3U8_854_480). Default: M3U8_480_360
-  chunk - chunk (initial buffering) size for streaming (default: 4M)
-To stream a file, you can use the 'mkfifo' trick with omxplayer etc.:
-  mkfifo /tmp/omx
-  bypy.py downfile <remotepath> /tmp/omx &
-  omxplayer /tmp/omx
-  *** NOT WORKING YET ****
+			stream a video / audio file converted to M3U format at cloud side, to a pipe.
+  			remotefile - remote file at Baidu Yun (after app root directory at Baidu Yun)
+  			localpipe - the local pipe file to write to
+  			format - output video format (M3U8_320_240 | M3U8_480_224 | \
+				M3U8_480_360 | M3U8_640_480 | M3U8_854_480). Default: M3U8_480_360
+  			chunk - chunk (initial buffering) size for streaming (default: 4M)
+
+				To stream a file, you can use the 'mkfifo' trick with omxplayer etc.:
+  				mkfifo /tmp/omx
+  				bypy.py downfile <remotepath> /tmp/omx &
+  				omxplayer /tmp/omx
+  		*** NOT WORKING YET ****
 		'''
 		pars = {
 			'method' : 'streaming',
@@ -2331,9 +2436,10 @@ To stream a file, you can use the 'mkfifo' trick with omxplayer etc.:
 
 	def downdir(self, remotepath = None, localpath = None):
 		''' Usage: downdir [remotedir] [localdir] - \
-download a remote directory (recursively)
-  remotedir - remote directory at Baidu Yun (after app root directory), if not specified, it is set to the root directory at Baidu Yun
-  localdir - local directory. if not specified, it is set to the current directory
+			download a remote directory (recursively)
+
+			remotedir - remote directory at Baidu Yun (after app root directory), if not specified, it is set to the root directory at Baidu Yun
+  			localdir - local directory. if not specified, it is set to the current directory
 		'''
 		rpath = get_pcs_path(remotepath)
 		lpath = localpath
@@ -2344,9 +2450,10 @@ download a remote directory (recursively)
 
 	def download(self, remotepath = '/', localpath = ''):
 		''' Usage: download [remotepath] [localpath] - \
-download a remote directory (recursively) / file
-  remotepath - remote path at Baidu Yun (after app root directory), if not specified, it is set to the root directory at Baidu Yun
-  localpath - local path. if not specified, it is set to the current directory
+			download a remote directory (recursively) / file
+
+			remotepath - remote path at Baidu Yun (after app root directory), if not specified, it is set to the root directory at Baidu Yun
+  			localpath - local path. if not specified, it is set to the current directory
 		'''
 		subr = self.get_file_info(remotepath)
 		if const.ENoError == subr:
@@ -2391,8 +2498,9 @@ download a remote directory (recursively) / file
 
 	def mkdir(self, remotepath):
 		''' Usage: mkdir <remotedir> - \
-create a directory at Baidu Yun
-  remotedir - the remote directory
+			create a directory at Baidu Yun
+
+			remotedir - the remote directory
 '''
 		rpath = get_pcs_path(remotepath)
 		return self.__mkdir(rpath)
@@ -2417,9 +2525,9 @@ create a directory at Baidu Yun
 
 	def move(self, fromp, to):
 		''' Usage: move/mv/rename/ren <from> <to> - \
-move a file / dir remotely at Baidu Yun
-  from - source path (file / dir)
-  to - destination path (file / dir)
+			move a file / dir remotely at Baidu Yun
+  		from - source path (file / dir)
+  		to - destination path (file / dir)
 		'''
 		frompp = get_pcs_path(fromp)
 		top = get_pcs_path(to)
@@ -2447,9 +2555,9 @@ move a file / dir remotely at Baidu Yun
 
 	def copy(self, fromp, to):
 		''' Usage: copy/cp <from> <to> - \
-copy a file / dir remotely at Baidu Yun
-  from - source path (file / dir)
-  to - destination path (file / dir)
+			copy a file / dir remotely at Baidu Yun
+  			from - source path (file / dir)
+  			to - destination path (file / dir)
 		'''
 		frompp = get_pcs_path(fromp)
 		top = get_pcs_path(to)
@@ -2509,8 +2617,8 @@ copy a file / dir remotely at Baidu Yun
 
 	def delete(self, remotepath):
 		''' Usage: delete/remove/rm <remotepath> - \
-delete a file / dir remotely at Baidu Yun
-  remotepath - destination path (file / dir)
+			delete a file / dir remotely at Baidu Yun
+  			remotepath - destination path (file / dir)
 		'''
 		rpath = get_pcs_path(remotepath)
 		#if is_pcs_root_path(rpath):
@@ -2526,10 +2634,10 @@ delete a file / dir remotely at Baidu Yun
 
 	def search(self, keyword, remotepath = None, recursive = True):
 		''' Usage: search <keyword> [remotepath] [recursive] - \
-search for a file using keyword at Baidu Yun
-  keyword - the keyword to search
-  remotepath - remote path at Baidu Yun, if not specified, it's app's root directory
-  resursive - search recursively or not. default is true
+			search for a file using keyword at Baidu Yun
+  			keyword - the keyword to search
+  			remotepath - remote path at Baidu Yun, if not specified, it's app's root directory
+  			resursive - search recursively or not. default is true
 		'''
 		rpath = get_pcs_path(remotepath)
 
@@ -2548,9 +2656,9 @@ search for a file using keyword at Baidu Yun
 
 	def listrecycle(self, start = 0, limit = 1000):
 		''' Usage: listrecycle [start] [limit] - \
-list the recycle contents
-  start - starting point, default: 0
-  limit - maximum number of items to display. default: 1000
+			list the recycle contents
+  			start - starting point, default: 0
+  			limit - maximum number of items to display. default: 1000
 		'''
 		pars = {
 			'method' : 'listrecycle',
@@ -2584,8 +2692,8 @@ list the recycle contents
 
 	def restore(self, remotepath):
 		''' Usage: restore <remotepath> - \
-restore a file from the recycle bin
-  remotepath - the remote path to restore
+			restore a file from the recycle bin
+  			remotepath - the remote path to restore
 		'''
 		rpath = get_pcs_path(remotepath)
 		# by default, only 1000 items, more than that sounds a bit crazy
@@ -2701,12 +2809,13 @@ restore a file from the recycle bin
 
 	def compare(self, remotedir = None, localdir = None, skip_remote_only_dirs = False):
 		''' Usage: compare [remotedir] [localdir] - \
-compare the remote directory with the local directory
-  remotedir - the remote directory at Baidu Yun (after app's directory). \
-if not specified, it defaults to the root directory.
-  localdir - the local directory, if not specified, it defaults to the current directory.
-  skip_remote_only_dirs - skip remote-only sub-directories (faster if the remote \
-directory is much larger than the local one). it defaults to False.
+			compare the remote directory with the local directory
+
+			remotedir - the remote directory at Baidu Yun (after app's directory). \
+			if not specified, it defaults to the root directory.
+			localdir - the local directory, if not specified, it defaults to the current directory.
+  			skip_remote_only_dirs - skip remote-only sub-directories (faster if the remote \
+			directory is much larger than the local one). it defaults to False.
 		'''
 		same, diff, local, remote = self.__compare(get_pcs_path(remotedir), localdir, str2bool(skip_remote_only_dirs))
 
@@ -2828,11 +2937,11 @@ directory is much larger than the local one). it defaults to False.
 
 	def syncdown(self, remotedir = '', localdir = '', deletelocal = False):
 		''' Usage: syncdown [remotedir] [localdir] [deletelocal] - \
-sync down from the remote directory to the local directory
-  remotedir - the remote directory at Baidu Yun (after app's directory) to sync from. \
-if not specified, it defaults to the root directory
-  localdir - the local directory to sync to if not specified, it defaults to the current directory.
-  deletelocal - delete local files that are not inside Baidu Yun directory, default is False
+			sync down from the remote directory to the local directory
+  			remotedir - the remote directory at Baidu Yun (after app's directory) to sync from. \
+				if not specified, it defaults to the root directory
+  			localdir - the local directory to sync to if not specified, it defaults to the current directory.
+  			deletelocal - delete local files that are not inside Baidu Yun directory, default is False
 		'''
 		result = const.ENoError
 		rpath = get_pcs_path(remotedir)
@@ -2951,11 +3060,11 @@ if not specified, it defaults to the root directory
 
 	def syncup(self, localdir = '', remotedir = '', deleteremote = False):
 		''' Usage: syncup [localdir] [remotedir] [deleteremote] - \
-sync up from the local directory to the remote directory
-  localdir - the local directory to sync from if not specified, it defaults to the current directory.
-  remotedir - the remote directory at Baidu Yun (after app's directory) to sync to. \
-if not specified, it defaults to the root directory
-  deleteremote - delete remote files that are not inside the local directory, default is False
+			sync up from the local directory to the remote directory
+  			localdir - the local directory to sync from if not specified, it defaults to the current directory.
+  			remotedir - the remote directory at Baidu Yun (after app's directory) to sync to. \
+			if not specified, it defaults to the root directory
+  			deleteremote - delete remote files that are not inside the local directory, default is False
 		'''
 		result = const.ENoError
 		rpath = get_pcs_path(remotedir)
@@ -3039,9 +3148,9 @@ if not specified, it defaults to the root directory
 
 	def cdl_add(self, source_url, save_path = '/', timeout = 3600):
 		''' Usage: cdl_add <source_url> [save_path] [timeout] - add an offline (cloud) download task
-  source_url - the URL to download file from.
-  save_path - path on PCS to save file to. default is to save to root directory '/'.
-  timeout - timeout in seconds. default is 3600 seconds.
+  			source_url - the URL to download file from.
+  			save_path - path on PCS to save file to. default is to save to root directory '/'.
+  			timeout - timeout in seconds. default is 3600 seconds.
 		'''
 		rpath = self.__get_cdl_dest(source_url, save_path)
 		return self.__cdl_add(source_url, rpath, timeout)
@@ -3059,8 +3168,8 @@ if not specified, it defaults to the root directory
 
 	def cdl_query(self, task_ids, op_type = 1):
 		''' Usage: cdl_query <task_ids>  - query existing offline (cloud) download tasks
-  task_ids - task ids seperated by comma (,).
-  op_type - 0 for task info; 1 for progress info. default is 1
+  			task_ids - task ids seperated by comma (,).
+  			op_type - 0 for task info; 1 for progress info. default is 1
 		'''
 		return self.__cdl_query(task_ids, op_type)
 
@@ -3138,9 +3247,9 @@ if not specified, it defaults to the root directory
 
 	def cdl_addmon(self, source_url, save_path = '/', timeout = 3600):
 		''' Usage: cdl_addmon <source_url> [save_path] [timeout] - add an offline (cloud) download task and monitor the download progress
-  source_url - the URL to download file from.
-  save_path - path on PCS to save file to. default is to save to root directory '/'.
-  timeout - timeout in seconds. default is 3600 seconds.
+  			source_url - the URL to download file from.
+  			save_path - path on PCS to save file to. default is to save to root directory '/'.
+  			timeout - timeout in seconds. default is 3600 seconds.
 		'''
 		rpath = self.__get_cdl_dest(source_url, save_path)
 		return self.__cdl_addmon(source_url, rpath, timeout)
@@ -3163,7 +3272,7 @@ if not specified, it defaults to the root directory
 
 	def cdl_cancel(self, task_id):
 		''' Usage: cdl_cancel <task_id>  - cancel an offline (cloud) download task
-  task_id - id of the task to be canceled.
+  			task_id - id of the task to be canceled.
 		'''
 		return self.__cdl_cancel(task_id)
 
@@ -3463,12 +3572,12 @@ def setuphandlers():
 		setsighandler(signal.SIGPIPE, signal.SIG_IGN)
 		setsighandler(signal.SIGQUIT, sighandler)
 		setsighandler(signal.SIGSYS, sighandler)
-	setsighandler(signal.SIGABRT, sighandler)
-	setsighandler(signal.SIGFPE, sighandler)
-	setsighandler(signal.SIGILL, sighandler)
-	setsighandler(signal.SIGINT, sighandler)
-	setsighandler(signal.SIGSEGV, sighandler)
-	setsighandler(signal.SIGTERM, sighandler)
+		setsighandler(signal.SIGABRT, sighandler)
+		setsighandler(signal.SIGFPE, sighandler)
+		setsighandler(signal.SIGILL, sighandler)
+		setsighandler(signal.SIGINT, sighandler)
+		setsighandler(signal.SIGSEGV, sighandler)
+		setsighandler(signal.SIGTERM, sighandler)
 
 def getparser():
 	#name = os.path.basename(sys.argv[0])
