@@ -76,19 +76,43 @@ sys.platform       返回操作系统平台名称
 '''
 
 import io
+
+
 import signal
+
+
 import time
+
+
 import shutil
+
+
 import tempfile
+
+
 import posixpath
+
+
 import json
+
+
 import hashlib
 #import base64
 import re
+
+
 import pprint
+
+
 import socket
+
+
 import subprocess
+
+
 import shlex
+
+
 from collections import deque
 #from collections import OrderedDict
 from functools import partial
